@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Catalog.Data;
+using Catalog.Data.Seed;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Data;
 
 namespace Catalog;
 public static class CatalogModule
@@ -15,18 +18,16 @@ public static class CatalogModule
         // Application Use Case services       
 
         // Data - Infrastructure services
-        //var connectionString = configuration.GetConnectionString("Database");
+        var connectionString = configuration.GetConnectionString("Database");
 
         //services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         //services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
-        //services.AddDbContext<CatalogDbContext>((sp, options) =>
-        //{
-        //    options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-        //    options.UseNpgsql(connectionString);
-        //});
+        services.AddDbContext<CatalogDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
-        //services.AddScoped<IDataSeeder, CatalogDataSeeder>();
+
+        services.AddScoped<IDataSeeder, CatalogDataSeeder>();
 
         return services;
     }
@@ -40,7 +41,7 @@ public static class CatalogModule
         // 2. Use Application Use Case services
 
         // 3. Use Data - Infrastructure services  
-        //app.UseMigration<CatalogDbContext>();
+        app.UseMigration<CatalogDbContext>();
 
         return app;
     }
