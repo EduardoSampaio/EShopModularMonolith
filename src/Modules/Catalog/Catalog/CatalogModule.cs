@@ -1,9 +1,11 @@
 ﻿using Catalog.Data;
 using Catalog.Data.Seed;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Data;
+using Shared.Data.Interceptors;
 
 namespace Catalog;
 public static class CatalogModule
@@ -15,17 +17,20 @@ public static class CatalogModule
 
         // Api Endpoint services
 
-        // Application Use Case services       
+        // Application Use Case services
 
-        // Data - Infrastructure services
+
+       // Data - Infrastructure services
         var connectionString = configuration.GetConnectionString("Database");
 
-        //services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        //services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
-        services.AddDbContext<CatalogDbContext>(options =>
-                options.UseNpgsql(connectionString));
-
+        services.AddDbContext<CatalogDbContext>((sp, options) =>
+        {
+            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            options.UseNpgsql(connectionString);
+        });
 
         services.AddScoped<IDataSeeder, CatalogDataSeeder>();
 

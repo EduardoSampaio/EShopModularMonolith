@@ -1,5 +1,9 @@
 
 
+using System.Reflection;
+using Carter;
+using Shared.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
        .AddCatalogModule(builder.Configuration)
@@ -7,6 +11,15 @@ builder.Services
        .AddOrderingModule(builder.Configuration);
 
 // Add services to the container.
+var catalogAssembly = typeof(CatalogModule).Assembly;
+var basketAssembly = typeof(BasketModule).Assembly;
+var orderingAssembly = typeof(OrderingModule).Assembly;
+
+builder.Services
+    .AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
+
+builder.Services
+    .AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
 
 var app = builder.Build();
 
@@ -15,7 +28,7 @@ var app = builder.Build();
 
 
 app.UseHttpsRedirection();
-
+app.MapCarter();
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule();
