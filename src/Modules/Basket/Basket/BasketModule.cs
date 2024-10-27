@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Basket.Data.Processors;
+using Basket.Data.Repository;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Data;
+using Shared.Data.Interceptors;
 
 namespace Basket;
 public static class BasketModule
@@ -14,22 +18,22 @@ public static class BasketModule
         // 1. Api Endpoint services
 
         // 2. Application Use Case services
-        //services.AddScoped<IBasketRepository, BasketRepository>();
-        //services.Decorate<IBasketRepository, CachedBasketRepository>();        
+        services.AddScoped<IBasketRepository, BasketRepository>();
+        services.Decorate<IBasketRepository, CachedBasketRepository>();        
 
-        //// 3. Data - Infrastructure services
-        //var connectionString = configuration.GetConnectionString("Database");
+        // 3. Data - Infrastructure services
+        var connectionString = configuration.GetConnectionString("Database");
 
-        //services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        //services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
-        //services.AddDbContext<BasketDbContext>((sp, options) =>
-        //{
-        //    options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-        //    options.UseNpgsql(connectionString);
-        //});
+        services.AddDbContext<BasketDbContext>((sp, options) =>
+        {
+            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            options.UseNpgsql(connectionString);
+        });
 
-        //services.AddHostedService<OutboxProcessor>();
+        services.AddHostedService<OutboxProcessor>();
 
         return services;
     }
@@ -42,7 +46,7 @@ public static class BasketModule
         // 2. Use Application Use Case services
 
         // 3. Use Data - Infrastructure services
-        //app.UseMigration<BasketDbContext>();
+        app.UseMigration<BasketDbContext>();
 
         return app;
     }
